@@ -1,0 +1,86 @@
+body { 
+  font-family: Arial; 
+  margin: 0; 
+  padding-top: 100px;
+}
+
+
+#toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: white;
+  padding: 10px;
+  border-bottom: 2px solid #ccc;
+  z-index: 9999;
+  font-family: Lobster;
+}
+
+.pagina { 
+  position: relative; 
+  margin: 20px auto; 
+  width: fit-content;
+}
+
+canvas { 
+  border: 1px solid #000; 
+}
+
+.elemento {
+  position: absolute;
+  display: inline-block;
+  cursor: move;
+  transform-origin: top left;
+}
+
+.texto {
+  padding: 2px 4px;
+  background: rgba(255,255,255,0.8);
+  border: 1px solid transparent;
+}
+
+.imagen img {
+  display: block;
+  pointer-events: none;
+}
+
+.selected {
+  border: 1px dashed #007bff;
+}
+
+.resize-handle {
+  width: 8px;
+  height: 8px;
+  background: #007bff;
+  border: 1px solid white;
+  position: absolute;
+  border-radius: 2px;
+  display: none;
+}
+
+.selected .resize-handle {
+  display: block;
+}
+
+.handle-br { bottom: -5px; right: -5px; cursor: se-resize; }
+
+.delete-btn {
+  position: absolute;
+  top: -18px;
+  right: -18px;
+  background: red;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 12px;
+  text-align: center;
+  line-height: 18px;
+  cursor: pointer;
+  display: none;
+}
+
+.selected .delete-btn {
+  display: block;
+}
