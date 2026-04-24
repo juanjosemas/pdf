@@ -2,31 +2,35 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Editor PDF PRO</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Fuentes de Google Fonts -->
-        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;700&family=Amatic+SC:wght@700&family=Caveat:wght@700&family=Dancing+Script:wght@700&family=Lobster&family=Metal+Mania&family=Yellowtail&family=Permanent+Marker&family=Piedra&family=Sriracha&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Lobster&display=swap" rel="stylesheet">
 
 <div id="toolbar">
-  <input type="file" id="file" accept="application/pdf">
+  <input type="file" id="file" accept="application/pdf" style="width: 100%; max-width: 180px;">
 
-  <button onclick="modoTexto()">Añadir texto</button>
-  <button onclick="modoBorrar()">Borrar zona</button>
-  <button onclick="modoImagen()">Insertar imagen</button>
+  <button onclick="modoTexto()">+ Texto</button>
+  
+  <button onclick="toggleBold()" style="font-family: Arial; font-weight: bold;">B</button>
+  <button onclick="toggleItalic()" style="font-family: Arial; font-style: italic;">I</button>
 
-  Color: <input type="color" id="colorTexto" value="#000000">
+  <button onclick="modoBorrar()">Borrar</button>
+  <button onclick="modoImagen()">Imagen</button>
 
-  <button onclick="descargarPDF()">Descargar PDF editado</button>
+  <input type="color" id="colorTexto" value="#000000" style="width: 30px; height: 30px;">
+
+  <button onclick="descargarPDF()" style="background: #007bff; color: white; border: none;">Descargar</button>
 </div>
 
-<div id="contenedor"></div>
+<div id="contenedor-scroll">
+    <div id="contenedor"></div>
+</div>
 
-<!-- Librerías Externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<!-- Tu lógica de JavaScript -->
 <script src="script.js"></script>
 
 </body>
