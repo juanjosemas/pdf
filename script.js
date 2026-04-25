@@ -4,6 +4,7 @@ let arrastrando = false;
 let zoom = 1;
 let inicialDistanciaPellizco = 0;
 let inicialZoom = 1;
+let pdfDocumento = null; // Guardamos el PDF para renderizar limpio al descargar
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
@@ -17,16 +18,12 @@ function calcularDistancia(e) {
   return Math.hypot(t[0].pageX - t[1].pageX, t[0].pageY - t[1].pageY);
 }
 
-// Bloquear menús contextuales en elementos
 document.addEventListener("contextmenu", (e) => {
     if (e.target.closest(".elemento")) e.preventDefault();
 }, false);
 
-// GESTIÓN GLOBAL DE SELECCIÓN Y ZOOM
 document.addEventListener("touchstart", (e) => {
-  // Ignoramos clics si vienen de la barra de herramientas
   if (e.target.closest("#toolbar")) return;
-
   if (e.touches.length === 2) {
     arrastrando = false;
     inicialDistanciaPellizco = calcularDistancia(e);
@@ -37,14 +34,13 @@ document.addEventListener("touchstart", (e) => {
 }, { passive: false });
 
 document.addEventListener("mousedown", (e) => {
-  // Si clicamos en la barra, no deseleccionamos lo que hay abajo
   if (e.target.closest("#toolbar")) return;
   if (!e.target.closest(".elemento")) deseleccionar();
 });
 
 document.addEventListener("touchmove", (e) => {
   if (e.touches.length === 2) {
-    e.preventDefault();
+    if (e.cancelable) e.preventDefault();
     const nuevaDistancia = calcularDistancia(e);
     zoom = Math.min(Math.max(inicialZoom * (nuevaDistancia / inicialDistanciaPellizco), 0.5), 4);
     document.getElementById("contenedor").style.transform = `scale(${zoom})`;
@@ -66,49 +62,36 @@ function deseleccionar() {
   seleccionado = null;
 }
 
-// FUNCIONES DE ESTILO (CORREGIDAS)
 function toggleBold() {
   if (!seleccionado) return;
   const editArea = seleccionado.querySelector(".texto-edit");
   if (!editArea) return;
-  
-  // Usamos getComputedStyle para leer el estado real aunque no esté definido en el style inline
   const currentWeight = window.getComputedStyle(editArea).fontWeight;
-  if (currentWeight === "bold" || parseInt(currentWeight) >= 700) {
-      editArea.style.fontWeight = "normal";
-  } else {
-      editArea.style.fontWeight = "bold";
-  }
+  editArea.style.fontWeight = (currentWeight === "bold" || parseInt(currentWeight) >= 700) ? "normal" : "bold";
 }
 
 function toggleItalic() {
   if (!seleccionado) return;
   const editArea = seleccionado.querySelector(".texto-edit");
   if (!editArea) return;
-
   const currentStyle = window.getComputedStyle(editArea).fontStyle;
-  if (currentStyle === "italic") {
-      editArea.style.fontStyle = "normal";
-  } else {
-      editArea.style.fontStyle = "italic";
-  }
+  editArea.style.fontStyle = (currentStyle === "italic") ? "normal" : "italic";
 }
 
 function modoTexto() { modo = "texto"; }
 function modoBorrar() { modo = "borrar"; }
 function modoImagen() { modo = "imagen"; }
 
-// CARGA DEL PDF
 document.getElementById("file").addEventListener("change", async (e) => {
   const file = e.target.files[0];
   if (!file) return;
   const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  pdfDocumento = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   const contenedor = document.getElementById("contenedor");
   contenedor.innerHTML = "";
 
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
+  for (let i = 1; i <= pdfDocumento.numPages; i++) {
+    const page = await pdfDocumento.getPage(i);
     const viewport = page.getViewport({ scale: 1.5 });
     const div = document.createElement("div");
     div.className = "pagina";
@@ -137,36 +120,29 @@ document.getElementById("file").addEventListener("change", async (e) => {
 
 function activarArrastre(el) {
   const areaTexto = el.querySelector(".texto-edit");
-
   const inicio = (e) => {
     if (e.touches && e.touches.length > 1) return;
     if (e.target.classList.contains("resize-handle") || e.target.classList.contains("delete-btn")) return;
-    
-    // Si ya estamos editando el texto interior, permitimos el cursor y no arrastramos el cuadro
     if (areaTexto && areaTexto.contentEditable === "true") return;
 
     seleccionar(el);
     arrastrando = true;
     const pos = getPos(e);
-    const rect = el.getBoundingClientRect();
-    offsetX = (pos.clientX - rect.left) / zoom;
-    offsetY = (pos.clientY - rect.top) / zoom;
+    const rectPagina = el.parentElement.getBoundingClientRect();
+    
+    // Guardamos la posición relativa inicial considerando el zoom
+    offsetX = ((pos.clientX - rectPagina.left) / zoom) - parseFloat(el.style.left || 0);
+    offsetY = ((pos.clientY - rectPagina.top) / zoom) - parseFloat(el.style.top || 0);
 
     document.addEventListener("mousemove", mover);
     document.addEventListener("mouseup", soltar);
     document.addEventListener("touchmove", mover, { passive: false });
     document.addEventListener("touchend", soltar);
   };
-
   el.addEventListener("mousedown", inicio);
   el.addEventListener("touchstart", inicio, { passive: false });
-
-  // Doble clic para activar la escritura
   el.addEventListener("dblclick", () => {
-    if (areaTexto) {
-      areaTexto.contentEditable = true;
-      areaTexto.focus();
-    }
+    if (areaTexto) { areaTexto.contentEditable = true; areaTexto.focus(); }
   });
 }
 
@@ -175,8 +151,9 @@ function mover(e) {
   if (e.type === "touchmove") e.preventDefault(); 
   const pos = getPos(e);
   const rectPagina = seleccionado.parentElement.getBoundingClientRect();
-  seleccionado.style.left = ((pos.clientX - rectPagina.left) / zoom - offsetX) + "px";
-  seleccionado.style.top = ((pos.clientY - rectPagina.top) / zoom - offsetY) + "px";
+  // Aplicamos la nueva posición restando el offset para que no haya saltos
+  seleccionado.style.left = (((pos.clientX - rectPagina.left) / zoom) - offsetX) + "px";
+  seleccionado.style.top = (((pos.clientY - rectPagina.top) / zoom) - offsetY) + "px";
 }
 
 function soltar() {
@@ -193,36 +170,24 @@ function crearTexto(pagina, x, y) {
   wrapper.className = "elemento";
   wrapper.style.left = x + "px";
   wrapper.style.top = y + "px";
-
   const editArea = document.createElement("div");
   editArea.className = "texto-edit";
   editArea.style.fontSize = "20px";
   editArea.style.color = document.getElementById("colorTexto").value;
   editArea.innerText = ""; 
   wrapper.appendChild(editArea);
-  
   activarArrastre(wrapper);
-
   const del = document.createElement("div");
-  del.className = "delete-btn";
-  del.innerText = "×";
+  del.className = "delete-btn"; del.innerText = "×";
   del.onclick = (e) => { e.stopPropagation(); wrapper.remove(); };
   wrapper.appendChild(del);
-
   const h = document.createElement("div");
   h.className = "resize-handle handle-br";
   h.addEventListener("touchstart", (e) => startResize(e, wrapper, editArea), { passive: false });
   h.addEventListener("mousedown", (e) => startResize(e, wrapper, editArea));
   wrapper.appendChild(h);
-
   pagina.appendChild(wrapper);
-
-  // Seleccionamos y damos foco para empezar a escribir
-  setTimeout(() => {
-    seleccionar(wrapper);
-    editArea.contentEditable = true;
-    editArea.focus();
-  }, 100);
+  setTimeout(() => { seleccionar(wrapper); editArea.contentEditable = true; editArea.focus(); }, 100);
 }
 
 function startResize(e, wrapper, editArea) {
@@ -230,7 +195,6 @@ function startResize(e, wrapper, editArea) {
     const pos = getPos(e);
     let startX = pos.clientX;
     let startSize = parseInt(window.getComputedStyle(editArea).fontSize);
-
     const onMove = (ev) => {
       const p = getPos(ev);
       let delta = (p.clientX - startX) / (2 * zoom);
@@ -255,6 +219,7 @@ function insertarImagen(pagina, x, y) {
     const wrapper = document.createElement("div");
     wrapper.className = "elemento imagen";
     wrapper.style.left = x + "px"; wrapper.style.top = y + "px";
+    wrapper.style.width = "200px"; // Ancho base para empezar
     const img = document.createElement("img");
     img.src = url; wrapper.appendChild(img);
     wrapper.dataset.scale = 1;
@@ -269,6 +234,7 @@ function insertarImagen(pagina, x, y) {
     del.onclick = (e) => { e.stopPropagation(); wrapper.remove(); };
     wrapper.appendChild(del);
     pagina.appendChild(wrapper);
+    seleccionar(wrapper);
   };
   input.click();
 }
@@ -277,12 +243,11 @@ function startResizeImg(e, wrapper) {
     e.stopPropagation(); e.preventDefault();
     const pos = getPos(e);
     let startX = pos.clientX;
-    let startScale = parseFloat(wrapper.dataset.scale) || 1;
+    let startW = wrapper.offsetWidth;
     const onMove = (ev) => {
         const p = getPos(ev);
-        let delta = (p.clientX - startX) / (150 * zoom);
-        wrapper.dataset.scale = Math.max(0.1, startScale + delta);
-        wrapper.style.transform = `scale(${wrapper.dataset.scale})`;
+        let delta = (p.clientX - startX) / zoom;
+        wrapper.style.width = Math.max(20, startW + delta) + "px";
     };
     const onEnd = () => {
         document.removeEventListener("mousemove", onMove); document.removeEventListener("mouseup", onEnd);
@@ -292,40 +257,55 @@ function startResizeImg(e, wrapper) {
     document.addEventListener("touchmove", onMove, { passive: false }); document.addEventListener("touchend", onEnd);
 }
 
+// DESCARGA FINAL MEJORADA
 async function descargarPDF() {
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF();
-  const paginas = document.querySelectorAll(".pagina");
-  for (let i = 0; i < paginas.length; i++) {
+  const paginasDOM = document.querySelectorAll(".pagina");
+
+  for (let i = 0; i < paginasDOM.length; i++) {
     if (i > 0) pdf.addPage();
-    const canvas = paginas[i].querySelector("canvas");
-    const ctx = canvas.getContext("2d");
-    const elementos = paginas[i].querySelectorAll(".elemento");
+    const pageNum = i + 1;
+    const page = await pdfDocumento.getPage(pageNum);
+    const viewport = page.getViewport({ scale: 1.5 });
+
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = viewport.width;
+    tempCanvas.height = viewport.height;
+    const tctx = tempCanvas.getContext("2d");
+
+    // Renderizamos la página original limpia
+    await page.render({ canvasContext: tctx, viewport }).promise;
+
+    // Dibujamos los elementos (texto e imágenes) en sus posiciones finales
+    const elementos = paginasDOM[i].querySelectorAll(".elemento");
     elementos.forEach(el => {
+      const x = parseFloat(el.style.left);
+      const y = parseFloat(el.style.top);
+
       const editArea = el.querySelector(".texto-edit");
-      if (editArea) {
-        const fs = window.getComputedStyle(editArea).fontSize;
-        const fw = window.getComputedStyle(editArea).fontWeight;
-        const fst = window.getComputedStyle(editArea).fontStyle;
-        let style = "";
-        if (fw === "bold" || parseInt(fw) >= 700) style += "bold ";
-        if (fst === "italic") style += "italic ";
-        ctx.font = `${style}${fs} Arial`;
-        ctx.fillStyle = editArea.style.color;
-        ctx.fillText(editArea.innerText, parseInt(el.style.left), parseInt(el.style.top) + parseInt(fs));
+      if (editArea && editArea.innerText.trim() !== "") {
+        const style = window.getComputedStyle(editArea);
+        const fs = style.fontSize;
+        const fw = style.fontWeight;
+        const fst = style.fontStyle;
+        let fontStyle = "";
+        if (fw === "bold" || parseInt(fw) >= 700) fontStyle += "bold ";
+        if (fst === "italic") fontStyle += "italic ";
+        tctx.font = `${fontStyle}${fs} Arial`;
+        tctx.fillStyle = editArea.style.color;
+        tctx.fillText(editArea.innerText, x, y + parseInt(fs));
       }
+
       const img = el.querySelector("img");
       if (img) {
-        const scale = parseFloat(el.dataset.scale) || 1;
-        const tempCanvas = document.createElement("canvas");
-        const tctx = tempCanvas.getContext("2d");
-        tempCanvas.width = img.naturalWidth * scale; tempCanvas.height = img.naturalHeight * scale;
-        tctx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
-        ctx.drawImage(tempCanvas, parseInt(el.style.left), parseInt(el.style.top));
+        // Usamos offsetWidth/Height que es el tamaño real que ves en pantalla
+        tctx.drawImage(img, x, y, el.offsetWidth, el.offsetHeight);
       }
     });
-    const imgData = canvas.toDataURL("image/jpeg", 0.8);
+
+    const imgData = tempCanvas.toDataURL("image/jpeg", 0.95);
     pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
   }
-  pdf.save("editado.pdf");
+  pdf.save("pdf_editado.pdf");
 }
