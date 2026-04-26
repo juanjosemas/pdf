@@ -1,7 +1,7 @@
 body { 
   font-family: Arial; /* Define la fuente principal de la página */
   margin: 0; /* Elimina los márgenes predeterminados del navegador */
-  padding-top: 110px; /* Espacio reducido arriba para ganar sitio para el PDF */
+  padding-top: 110px; /* Espacio superior para que la barra no tape el PDF */
   background-color: #f0f0f0; /* Color de fondo gris claro para contraste */
   overflow: hidden; /* Evita el scroll elástico en dispositivos móviles */
 }
@@ -12,57 +12,57 @@ body {
   left: 0; /* Alineada al borde izquierdo */
   width: 100%; /* Ocupa todo el ancho de la pantalla */
   background: white; /* Color de fondo sólido para la barra */
-  padding: 6px 5px; /* Padding reducido para que la barra sea más delgada */
+  padding: 6px 5px; /* Espacio interno de la barra muy compacto */
   border-bottom: 2px solid #ccc; /* Línea gris inferior de separación */
   z-index: 9999; /* Asegura que esté por encima de cualquier otro elemento */
   display: flex; /* Activa flexbox para organizar los controles */
   flex-wrap: wrap; /* Permite que los botones bajen de línea en móviles */
-  gap: 5px; /* Espacio entre botones más pequeño para compactar */
+  gap: 5px; /* Espacio reducido entre botones para compactar */
   justify-content: center; /* Centra los botones horizontalmente */
-  box-sizing: border-box; /* Asegura que el padding no aumente el ancho del 100% */
+  box-sizing: border-box; /* Asegura que el padding no aumente el ancho total */
 }
 
 #toolbar button {
   font-family: 'Caveat'; /* Fuente personalizada para los botones */
-  font-size: 15px; /* Letra un poco más pequeña para ahorrar espacio */
+  font-size: 15px; /* Tamaño de letra reducido para ahorrar espacio */
   cursor: pointer; /* Cambia a icono de mano al pasar por encima */
-  padding: 4px 8px; /* Espacio interno reducido para botones más compactos */
-  background: #fff; /* Fondo blanco inicial */
-  border: 1px solid #777; /* Borde gris definido */
+  padding: 4px 8px; /* Espacio interno de los botones reducido */
+  background: #fff; /* Fondo blanco de los botones */
+  border: 1px solid #777; /* Borde gris fino para cada botón */
   border-radius: 4px; /* Esquinas ligeramente redondeadas */
-  min-width: 32px; /* Ancho mínimo reducido para botones como B e I */
+  min-width: 32px; /* Ancho mínimo pequeño para botones compactos */
 }
 
 #contenedor-scroll {
   width: 100vw; /* Ancho total de la ventana visual */
-  height: calc(100vh - 110px); /* Alto total ajustado al nuevo tamaño de la barra */
-  overflow: auto; /* Permite scroll vertical y horizontal */
+  height: calc(100vh - 110px); /* Alto total menos el espacio de la barra */
+  overflow: auto; /* Permite scroll vertical y horizontal en el visor */
   background: #525659; /* Fondo gris oscuro tipo visor profesional */
-  display: flex; /* Mantiene el sistema de centrado */
-  flex-direction: column; /* Organiza el contenido en columna */
+  display: flex; /* Activa flexbox para el centrado del PDF */
+  flex-direction: column; /* Organiza las páginas una debajo de otra */
   align-items: center; /* Centra el PDF horizontalmente */
 }
 
 #contenedor {
-  transform-origin: top center; /* El zoom nace desde el centro superior */
-  transition: transform 0.05s linear; /* Suaviza el cambio de escala */
-  display: flex; /* Flexbox interno */
-  flex-direction: column; /* Páginas una debajo de otra */
-  align-items: center; /* Centrado de páginas */
-  padding: 10px; /* Menos espacio extra alrededor para aprovechar la pantalla */
-  width: fit-content; /* El contenedor se ajusta al ancho del PDF */
-  margin: 0 auto; /* Refuerzo de centrado */
+  transform-origin: top center; /* El zoom se aplica desde el centro superior */
+  transition: transform 0.05s linear; /* Suaviza el cambio de escala del zoom */
+  display: flex; /* Activa flexbox interno para el documento */
+  flex-direction: column; /* Coloca las páginas en vertical */
+  align-items: center; /* Centra las páginas una sobre otra */
+  padding: 10px; /* Espacio mínimo alrededor del PDF */
+  width: fit-content; /* El contenedor se ajusta al ancho real de la página */
+  margin: 0 auto; /* Refuerzo de centrado horizontal */
 }
 
 .pagina { 
-  position: relative; /* Base para posicionar elementos encima de la hoja */
-  margin: 8px 0; /* Espacio vertical entre hojas reducido */
-  box-shadow: 0 0 15px rgba(0,0,0,0.5); /* Sombra para efecto de papel */
-  background: white; /* Color blanco de fondo del papel */
+  position: relative; /* Base para posicionar elementos (texto/fotos) encima */
+  margin: 8px 0; /* Espacio vertical reducido entre hojas */
+  box-shadow: 0 0 15px rgba(0,0,0,0.5); /* Sombra para simular profundidad */
+  background: white; /* Color blanco del papel del PDF */
 }
 
 canvas { 
-  display: block; /* Elimina espacios residuales bajo el lienzo */
+  display: block; /* Elimina espacios residuales bajo el lienzo del canvas */
 }
 
 #contenedor.modo-borrar .pagina canvas {
@@ -70,76 +70,76 @@ canvas {
 }
 
 .elemento {
-  position: absolute; /* Movimiento libre por las coordenadas de la página */
-  display: inline-block; /* Tamaño ajustado al contenido */
-  cursor: move; /* Icono de flechas para arrastrar */
-  touch-action: none; /* Bloquea gestos del navegador al arrastrar */
+  position: absolute; /* Permite mover el objeto libremente por la página */
+  display: inline-block; /* Ajusta el tamaño al contenido interno */
+  cursor: move; /* Icono de flechas para indicar que es arrastrable */
+  touch-action: none; /* Bloquea gestos del sistema al arrastrar con el dedo */
 }
 
 .elemento img {
-  width: 100%; /* La imagen se adapta al ancho del contenedor */
-  height: 100%; /* La imagen se adapta al alto del contenedor */
-  display: block; /* Quita espacios residuales bajo la foto */
+  width: 100%; /* La imagen ocupa todo el ancho de su contenedor */
+  height: 100%; /* La imagen ocupa todo el alto de su contenedor */
+  display: block; /* Quita espacios residuales bajo la imagen */
   pointer-events: none; /* Evita que la imagen capture los clics del padre */
 }
 
 .texto-edit {
-  min-width: 40px; /* Ancho mínimo para cuadros vacíos */
-  min-height: 25px; /* Alto mínimo para clics fáciles */
-  padding: 4px; /* Margen interno para el texto */
-  outline: none; /* Quita el borde de enfoque de los navegadores */
+  min-width: 40px; /* Ancho mínimo para poder clicar cuadros vacíos */
+  min-height: 25px; /* Alto mínimo para facilitar la edición táctil */
+  padding: 4px; /* Margen interno para que el texto no toque el borde */
+  outline: none; /* Elimina el borde de enfoque predeterminado */
   background: rgba(255,255,255,0.5); /* Fondo blanco semitransparente */
-  border: 1px dashed transparent; /* Borde invisible inicial */
-  user-select: text; /* Permite seleccionar y escribir texto */
-  -webkit-user-select: text; /* Compatibilidad con Safari iOS */
+  border: 1px dashed transparent; /* Borde invisible cuando no está seleccionado */
+  user-select: text; /* Permite la selección y edición de texto */
+  -webkit-user-select: text; /* Compatibilidad de edición para Safari iOS */
 }
 
 .selected .texto-edit, .selected.imagen {
-  border: 1px dashed #007bff; /* Borde azul punteado al seleccionar */
+  border: 1px dashed #007bff; /* Borde azul punteado al seleccionar un objeto */
 }
 
 .selected {
-  z-index: 1000; /* Siempre arriba al estar seleccionado */
+  z-index: 1000; /* Asegura que el elemento seleccionado esté siempre arriba */
 }
 
 .resize-handle {
-  width: 14px; /* Tamaño del punto azul de redimensionado */
-  height: 14px; /* Tamaño del punto azul de redimensionado */
-  background: #007bff; /* Color azul de control */
-  border: 1px solid white; /* Borde blanco para contraste */
-  position: absolute; /* Posicionado en la esquina */
-  border-radius: 50%; /* Tirador circular */
-  display: none; /* Oculto por defecto */
-  z-index: 10; /* Por encima del contenido */
+  width: 14px; /* Diámetro del punto de control para redimensionar */
+  height: 14px; /* Diámetro del punto de control para redimensionar */
+  background: #007bff; /* Color azul para los controles de tamaño */
+  border: 1px solid white; /* Borde blanco para resaltar el control */
+  position: absolute; /* Posicionado relativo a la esquina del objeto */
+  border-radius: 50%; /* Forma circular para el tirador */
+  display: none; /* Se mantiene oculto si no hay selección */
+  z-index: 10; /* Por encima del contenido del elemento */
 }
 
 .selected .resize-handle {
-  display: block; /* Se muestra al seleccionar el objeto */
+  display: block; /* Muestra el tirador al seleccionar el objeto */
 }
 
 .handle-br { 
-  bottom: -7px; /* Esquina inferior derecha */
-  right: -7px; /* Esquina inferior derecha */
+  bottom: -7px; /* Ubicación exacta en la esquina inferior derecha */
+  right: -7px; /* Ubicación exacta en la esquina inferior derecha */
 }
 
 .delete-btn {
-  position: absolute; /* Botón fuera del área de contenido */
-  top: -25px; /* Arriba del objeto */
-  right: -25px; /* A la derecha del objeto */
-  background: red; /* Color rojo brillante */
-  color: white; /* Letra X en blanco */
-  border-radius: 50%; /* Círculo perfecto */
-  width: 28px; /* Tamaño optimizado para dedos móviles */
-  height: 28px; /* Tamaño optimizado para dedos móviles */
-  font-size: 18px; /* Tamaño de la letra X */
-  text-align: center; /* Centrado horizontal */
-  line-height: 28px; /* Centrado vertical */
-  cursor: pointer; /* Icono de mano */
-  display: none; /* Oculto por defecto */
-  z-index: 10; /* Prioridad de visualización */
-  user-select: none; /* Evita seleccionar la X como texto */
+  position: absolute; /* Botón posicionado fuera del área del objeto */
+  top: -25px; /* Separación superior respecto al objeto */
+  right: -25px; /* Separación derecha respecto al objeto */
+  background: red; /* Color rojo para indicar peligro/borrado */
+  color: white; /* Color blanco para la letra X */
+  border-radius: 50%; /* Forma circular perfecta */
+  width: 28px; /* Tamaño optimizado para pulsaciones táctiles */
+  height: 28px; /* Tamaño optimizado para pulsaciones táctiles */
+  font-size: 18px; /* Tamaño de la letra X central */
+  text-align: center; /* Centrado horizontal de la X */
+  line-height: 28px; /* Centrado vertical de la X */
+  cursor: pointer; /* Icono de mano al pasar el ratón */
+  display: none; /* Oculto si no se selecciona el objeto */
+  z-index: 10; /* Máxima prioridad visual */
+  user-select: none; /* Evita que la X sea seleccionada como texto */
 }
 
 .selected .delete-btn {
-  display: block; /* Se muestra al seleccionar el objeto */
+  display: block; /* Muestra el botón de eliminar al seleccionar */
 }
