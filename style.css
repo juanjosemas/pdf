@@ -1,7 +1,7 @@
 body { 
   font-family: Arial; /* Define la fuente principal de la página */
   margin: 0; /* Elimina los márgenes predeterminados del navegador */
-  padding-top: 150px; /* Deja espacio arriba para que la barra no tape el PDF */
+  padding-top: 110px; /* Espacio reducido arriba para ganar sitio para el PDF */
   background-color: #f0f0f0; /* Color de fondo gris claro para contraste */
   overflow: hidden; /* Evita el scroll elástico en dispositivos móviles */
 }
@@ -12,33 +12,33 @@ body {
   left: 0; /* Alineada al borde izquierdo */
   width: 100%; /* Ocupa todo el ancho de la pantalla */
   background: white; /* Color de fondo sólido para la barra */
-  padding: 10px; /* Espacio interno para los botones */
+  padding: 6px 5px; /* Padding reducido para que la barra sea más delgada */
   border-bottom: 2px solid #ccc; /* Línea gris inferior de separación */
   z-index: 9999; /* Asegura que esté por encima de cualquier otro elemento */
   display: flex; /* Activa flexbox para organizar los controles */
   flex-wrap: wrap; /* Permite que los botones bajen de línea en móviles */
-  gap: 8px; /* Espacio uniforme entre botones */
+  gap: 5px; /* Espacio entre botones más pequeño para compactar */
   justify-content: center; /* Centra los botones horizontalmente */
   box-sizing: border-box; /* Asegura que el padding no aumente el ancho del 100% */
 }
 
 #toolbar button {
   font-family: 'Caveat'; /* Fuente personalizada para los botones */
-  font-size: 18px; /* Tamaño de letra legible */
+  font-size: 15px; /* Letra un poco más pequeña para ahorrar espacio */
   cursor: pointer; /* Cambia a icono de mano al pasar por encima */
-  padding: 6px 10px; /* Espacio interno para facilitar el clic con el dedo */
+  padding: 4px 8px; /* Espacio interno reducido para botones más compactos */
   background: #fff; /* Fondo blanco inicial */
   border: 1px solid #777; /* Borde gris definido */
   border-radius: 4px; /* Esquinas ligeramente redondeadas */
-  min-width: 40px; /* Ancho mínimo para mantener uniformidad */
+  min-width: 32px; /* Ancho mínimo reducido para botones como B e I */
 }
 
 #contenedor-scroll {
   width: 100vw; /* Ancho total de la ventana visual */
-  height: calc(100vh - 150px); /* Alto total menos el espacio de la barra */
+  height: calc(100vh - 110px); /* Alto total ajustado al nuevo tamaño de la barra */
   overflow: auto; /* Permite scroll vertical y horizontal */
   background: #525659; /* Fondo gris oscuro tipo visor profesional */
-  display: flex; /* Mantiene el sistema de centrado que te funciona bien */
+  display: flex; /* Mantiene el sistema de centrado */
   flex-direction: column; /* Organiza el contenido en columna */
   align-items: center; /* Centra el PDF horizontalmente */
 }
@@ -49,20 +49,24 @@ body {
   display: flex; /* Flexbox interno */
   flex-direction: column; /* Páginas una debajo de otra */
   align-items: center; /* Centrado de páginas */
-  padding: 20px; /* Espacio extra alrededor del documento */
+  padding: 10px; /* Menos espacio extra alrededor para aprovechar la pantalla */
   width: fit-content; /* El contenedor se ajusta al ancho del PDF */
   margin: 0 auto; /* Refuerzo de centrado */
 }
 
 .pagina { 
   position: relative; /* Base para posicionar elementos encima de la hoja */
-  margin: 10px 0; /* Espacio vertical entre hojas */
+  margin: 8px 0; /* Espacio vertical entre hojas reducido */
   box-shadow: 0 0 15px rgba(0,0,0,0.5); /* Sombra para efecto de papel */
   background: white; /* Color blanco de fondo del papel */
 }
 
 canvas { 
   display: block; /* Elimina espacios residuales bajo el lienzo */
+}
+
+#contenedor.modo-borrar .pagina canvas {
+  cursor: crosshair !important; /* Muestra una cruz para precisar el borrado */
 }
 
 .elemento {
