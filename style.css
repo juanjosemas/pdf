@@ -1,3 +1,5 @@
+--- START OF FILE style.css ---
+
 body { 
   font-family: Arial; /* Define la fuente principal de la página */
   margin: 0; /* Elimina los márgenes predeterminados del navegador */
@@ -22,7 +24,7 @@ body {
   box-sizing: border-box; /* Asegura que el padding no aumente el ancho total */
 }
 
-#toolbar button {
+#toolbar button, #toolbar select {
   font-family: 'Caveat'; /* Fuente personalizada para los botones */
   font-size: 15px; /* Tamaño de letra reducido para ahorrar espacio */
   cursor: pointer; /* Cambia a icono de mano al pasar por encima */
@@ -33,8 +35,14 @@ body {
   min-width: 32px; /* Ancho mínimo pequeño para botones compactos */
 }
 
+#toolbar select {
+  font-family: Arial, sans-serif; /* Fuente del selector para que sea legible */
+  font-weight: bold; /* Texto en negrita para el selector */
+  color: #333; /* Color de texto gris oscuro */
+}
+
 #contenedor-scroll {
-  width: 100vw; /* Ancho total de la ventana visual */
+  width: 98vw; /* Ancho total de la ventana visual */
   height: calc(100vh - 110px); /* Alto total menos el espacio de la barra */
   overflow: auto; /* Permite scroll vertical y horizontal en el visor */
   background: #525659; /* Fondo gris oscuro tipo visor profesional */

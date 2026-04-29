@@ -12,6 +12,10 @@ let trazosBorrados = [];
 let trazoActual = null;
 let historialAcciones = []; 
 
+// Variables para el arrastre de elementos
+let offsetX = 0;
+let offsetY = 0;
+
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
 function getPos(e) {
@@ -49,7 +53,7 @@ document.addEventListener("touchmove", (e) => {
     if (e.cancelable) e.preventDefault();
     const nuevaDistancia = calcularDistancia(e);
     zoom = Math.min(Math.max(inicialZoom * (nuevaDistancia / inicialDistanciaPellizco), 0.5), 4);
-    document.getElementById("contenedor").style.transform = `scale(${zoom})`;
+    document.getElementById("contenedor").style.transform = "scale(" + zoom + ")";
   }
 }, { passive: false });
 
@@ -57,6 +61,13 @@ function seleccionar(el) {
   deseleccionar();
   seleccionado = el;
   el.classList.add("selected");
+  
+  // Sincronizar el selector de fuente con la fuente del elemento seleccionado
+  const editArea = el.querySelector(".texto-edit");
+  if (editArea) {
+      const fuenteActual = editArea.style.fontFamily.replace(/['"]+/g, "");
+      document.getElementById("fuenteTexto").value = fuenteActual || "Arial";
+  }
 }
 
 function deseleccionar() {
@@ -84,6 +95,13 @@ function toggleItalic() {
   editArea.style.fontStyle = (currentStyle === "italic") ? "normal" : "italic";
 }
 
+function cambiarFuente() {
+    if (!seleccionado) return;
+    const editArea = seleccionado.querySelector(".texto-edit");
+    if (!editArea) return;
+    editArea.style.fontFamily = document.getElementById("fuenteTexto").value;
+}
+
 function modoMover() {
     modo = "";
     document.getElementById("contenedor").classList.remove("modo-borrar");
@@ -109,7 +127,7 @@ function modoImagen() {
     document.getElementById("contenedor").classList.remove("modo-borrar"); 
 }
 
-// --- CARGA DE ARCHIVO CORREGIDA ---
+// --- CARGA DE ARCHIVO ---
 document.getElementById("file").addEventListener("change", async (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -144,9 +162,9 @@ document.getElementById("file").addEventListener("change", async (e) => {
         estaPintandoBorrador = true;
         const p = getPos(ev);
         const rect = canvas.getBoundingClientRect();
-        const x = (p.clientX - rect.left) / zoom;
-        const y = (p.clientY - rect.top) / zoom;
-        trazoActual = { pagina: i, puntos: [{x, y}] };
+        const mouseX = (p.clientX - rect.left) / zoom;
+        const mouseY = (p.clientY - rect.top) / zoom;
+        trazoActual = { pagina: i, puntos: [{x: mouseX, y: mouseY}] };
         trazosBorrados.push(trazoActual);
     };
 
@@ -155,20 +173,20 @@ document.getElementById("file").addEventListener("change", async (e) => {
         if (ev.cancelable) ev.preventDefault();
         const p = getPos(ev);
         const rect = canvas.getBoundingClientRect();
-        const x = (p.clientX - rect.left) / zoom;
-        const y = (p.clientY - rect.top) / zoom;
+        const mouseX = (p.clientX - rect.left) / zoom;
+        const mouseY = (p.clientY - rect.top) / zoom;
 
         const ctx = canvas.getContext("2d");
         ctx.beginPath();
         const ultimo = trazoActual.puntos[trazoActual.puntos.length - 1];
         ctx.moveTo(ultimo.x, ultimo.y);
-        ctx.lineTo(x, y);
+        ctx.lineTo(mouseX, mouseY);
         ctx.strokeStyle = "white";
         ctx.lineWidth = 10; 
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
         ctx.stroke();
-        trazoActual.puntos.push({x, y});
+        trazoActual.puntos.push({x: mouseX, y: mouseY});
     };
 
     const finalizarBorrado = () => {
@@ -189,10 +207,10 @@ document.getElementById("file").addEventListener("change", async (e) => {
     canvas.addEventListener("click", (ev) => {
       if (modo === "borrar") return;
       const rect = canvas.getBoundingClientRect();
-      const x = (ev.clientX - rect.left) / zoom;
-      const y = (ev.clientY - rect.top) / zoom;
-      if (modo === "texto") crearTexto(divPagina, x, y);
-      if (modo === "imagen") insertarImagen(divPagina, x, y);
+      const clickX = (ev.clientX - rect.left) / zoom;
+      const clickY = (ev.clientY - rect.top) / zoom;
+      if (modo === "texto") crearTexto(divPagina, clickX, clickY);
+      if (modo === "imagen") insertarImagen(divPagina, clickX, clickY);
     });
   }
 });
@@ -210,7 +228,7 @@ async function deshacer() {
 }
 
 async function redibujarPagina(numPagina) {
-    const divPagina = document.querySelector(`.pagina[data-num="${numPagina}"]`);
+    const divPagina = document.querySelector(".pagina[data-num='" + numPagina + "']");
     const canvas = divPagina.querySelector('canvas');
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -240,19 +258,28 @@ function activarArrastre(el) {
     if (e.touches && e.touches.length > 1) return;
     if (e.target.classList.contains("resize-handle") || e.target.classList.contains("delete-btn")) return;
     if (areaTexto && areaTexto.contentEditable === "true") return;
+    
     seleccionar(el);
     arrastrando = true;
     const pos = getPos(e);
     const rectPagina = el.parentElement.getBoundingClientRect();
-    offsetX = ((pos.clientX - rectPagina.left) / zoom) - parseFloat(el.style.left || 0);
-    offsetY = ((pos.clientY - rectPagina.top) / zoom) - parseFloat(el.style.top || 0);
+    
+    const actualLeft = parseFloat(el.style.left) || 0;
+    const actualTop = parseFloat(el.style.top) || 0;
+    
+    offsetX = ( (pos.clientX - rectPagina.left) / zoom ) - actualLeft;
+    offsetY = ( (pos.clientY - rectPagina.top) / zoom ) - actualTop;
 
     const mover = (ev) => {
         if (!arrastrando || !seleccionado) return;
         const p = getPos(ev);
         const rP = seleccionado.parentElement.getBoundingClientRect();
-        seleccionado.style.left = (((p.clientX - rP.left) / zoom) - offsetX) + "px";
-        seleccionado.style.top = (((p.clientY - rP.top) / zoom) - offsetY) + "px";
+        
+        const nuevoX = ( (p.clientX - rP.left) / zoom ) - offsetX;
+        const nuevoY = ( (p.clientY - rP.top) / zoom ) - offsetY;
+        
+        seleccionado.style.left = nuevoX + "px";
+        seleccionado.style.top = nuevoY + "px";
     };
 
     const soltar = () => {
@@ -286,6 +313,7 @@ function crearTexto(pagina, x, y) {
   editArea.className = "texto-edit";
   editArea.style.fontSize = "20px";
   editArea.style.color = document.getElementById("colorTexto").value;
+  editArea.style.fontFamily = document.getElementById("fuenteTexto").value; 
   editArea.innerText = "Texto"; 
   wrapper.appendChild(editArea);
   activarArrastre(wrapper);
@@ -300,6 +328,7 @@ function crearTexto(pagina, x, y) {
   wrapper.appendChild(h);
   pagina.appendChild(wrapper);
   historialAcciones.push({ tipo: 'elemento', el: wrapper });
+  seleccionar(wrapper); 
 }
 
 function startResize(e, wrapper, editArea) {
@@ -347,6 +376,7 @@ function insertarImagen(pagina, x, y) {
     wrapper.appendChild(del);
     pagina.appendChild(wrapper);
     historialAcciones.push({ tipo: 'elemento', el: wrapper });
+    seleccionar(wrapper);
   };
   input.click();
 }
@@ -399,23 +429,26 @@ async function descargarPDF() {
     });
     const elementos = paginasDOM[i].querySelectorAll(".elemento");
     elementos.forEach(el => {
-      const x = parseFloat(el.style.left);
-      const y = parseFloat(el.style.top);
+      const posX = parseFloat(el.style.left);
+      const posY = parseFloat(el.style.top);
       const editArea = el.querySelector(".texto-edit");
       if (editArea && editArea.innerText.trim() !== "") {
         const style = window.getComputedStyle(editArea);
-        const fs = style.fontSize;
-        const fw = style.fontWeight;
-        const fst = style.fontStyle;
-        let fontStyle = "";
-        if (fw === "bold" || parseInt(fw) >= 700) fontStyle += "bold ";
-        if (fst === "italic") fontStyle += "italic ";
-        tctx.font = `${fontStyle}${fs} Arial`;
+        const fontSize = style.fontSize;
+        const fontWeight = style.fontWeight;
+        const fontStyle = style.fontStyle;
+        const fontFamily = style.fontFamily; 
+        let finalFontStyle = "";
+        if (fontWeight === "bold" || parseInt(fontWeight) >= 700) finalFontStyle += "bold ";
+        if (fontStyle === "italic") finalFontStyle += "italic ";
+        
+        tctx.font = finalFontStyle + fontSize + " " + fontFamily;
         tctx.fillStyle = editArea.style.color;
-        tctx.fillText(editArea.innerText, x, y + parseInt(fs) * 0.8);
+        tctx.textBaseline = "top"; 
+        tctx.fillText(editArea.innerText, posX + 5, posY + 5);
       }
       const img = el.querySelector("img");
-      if (img) { tctx.drawImage(img, x, y, el.offsetWidth, el.offsetHeight); }
+      if (img) { tctx.drawImage(img, posX, posY, el.offsetWidth, el.offsetHeight); }
     });
     const imgData = tempCanvas.toDataURL("image/png");
     pdf.addImage(imgData, "PNG", 0, 0, viewport.width, viewport.height);
