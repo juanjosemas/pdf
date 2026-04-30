@@ -1,11 +1,11 @@
---- START OF FILE style.css ---
-
 body { 
   font-family: Arial; /* Define la fuente principal de la página */
   margin: 0; /* Elimina los márgenes predeterminados del navegador */
+  padding: 0; /* Elimina cualquier relleno del cuerpo */
   padding-top: 110px; /* Espacio superior para que la barra no tape el PDF */
   background-color: #f0f0f0; /* Color de fondo gris claro para contraste */
   overflow: hidden; /* Evita el scroll elástico en dispositivos móviles */
+  width: 100vw; /* Asegura que el cuerpo ocupe exactamente el ancho visual */
 }
 
 #toolbar {
@@ -42,13 +42,12 @@ body {
 }
 
 #contenedor-scroll {
-  width: 98vw; /* Ancho total de la ventana visual */
+  width: 100%; /* Ocupa el 100% del ancho disponible sin excederlo */
   height: calc(100vh - 110px); /* Alto total menos el espacio de la barra */
   overflow: auto; /* Permite scroll vertical y horizontal en el visor */
   background: #525659; /* Fondo gris oscuro tipo visor profesional */
-  display: flex; /* Activa flexbox para el centrado del PDF */
-  flex-direction: column; /* Organiza las páginas una debajo de otra */
-  align-items: center; /* Centra el PDF horizontalmente */
+  display: block; /* Cambiado a block para un control de scroll más tradicional */
+  margin: 0; /* Elimina cualquier margen lateral */
 }
 
 #contenedor {
@@ -56,21 +55,22 @@ body {
   transition: transform 0.05s linear; /* Suaviza el cambio de escala del zoom */
   display: flex; /* Activa flexbox interno para el documento */
   flex-direction: column; /* Coloca las páginas en vertical */
-  align-items: center; /* Centra las páginas una sobre otra */
-  padding: 10px; /* Espacio mínimo alrededor del PDF */
-  width: fit-content; /* El contenedor se ajusta al ancho real de la página */
-  margin: 0 auto; /* Refuerzo de centrado horizontal */
+  align-items: center; /* Centra las páginas horizontalmente con precisión */
+  padding: 20px 0; /* Espacio arriba y abajo del PDF */
+  width: 100%; /* Forzamos que el contenedor use todo el ancho para centrar hijos */
+  min-width: min-content; /* Asegura que no se corte el contenido al hacer zoom */
 }
 
 .pagina { 
   position: relative; /* Base para posicionar elementos (texto/fotos) encima */
-  margin: 8px 0; /* Espacio vertical reducido entre hojas */
+  margin: 8px auto; /* Centrado automático horizontal de cada página */
   box-shadow: 0 0 15px rgba(0,0,0,0.5); /* Sombra para simular profundidad */
   background: white; /* Color blanco del papel del PDF */
 }
 
 canvas { 
   display: block; /* Elimina espacios residuales bajo el lienzo del canvas */
+  margin: 0 auto; /* Asegura que el canvas esté centrado en su div */
 }
 
 #contenedor.modo-borrar .pagina canvas {
